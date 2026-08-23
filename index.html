@@ -302,6 +302,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;
     <button class="micpill" id="micPill" onclick="toggleMic()" aria-label="Toggle microphone">
       <i></i><span id="micLabel">MIC OFF</span>
     </button>
+    <button class="micpill" onclick="resetSettings()" aria-label="Connection settings"
+      style="padding:5px 9px" title="Connection settings">&#9881;</button>
     <div class="clock" id="clock">--:--:--</div>
   </div>
 
@@ -381,7 +383,53 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;
    getBotStats, getGaps, draftRuleFromSpeech, commitRule,
    askFromHud.
    ═══════════════════════════════════════════════════════════ */
-const LIVE = false;
+const LIVE = true;
+
+/* ═══════════════════════════════════════════════════════════
+   APPS SCRIPT API
+   On first open this asks for your deployment URL and token.
+   Both are stored in this browser only — nothing is in the file,
+   which is why the repository can safely be public.
+   Clear them any time with the gear icon in the top rail.
+   ═══════════════════════════════════════════════════════════ */
+let API   = localStorage.getItem('az_api')   || '';
+let TOKEN = localStorage.getItem('az_token') || '';
+
+function askForSettings(force){
+  if(API && TOKEN && !force) return true;
+  const a = prompt('Apps Script web app URL (ends in /exec)', API || '');
+  if(!a) return false;
+  const t = prompt('API token', TOKEN || '');
+  if(!t) return false;
+  API = a.trim().replace(/\?.*$/,''); TOKEN = t.trim();
+  localStorage.setItem('az_api', API);
+  localStorage.setItem('az_token', TOKEN);
+  return true;
+}
+function resetSettings(){
+  localStorage.removeItem('az_api');
+  localStorage.removeItem('az_token');
+  API=''; TOKEN='';
+  if(askForSettings(true)) location.reload();
+}
+
+async function api(action, params){
+  if(!API || !TOKEN) throw new Error('not configured');
+  const u = new URL(API);
+  u.searchParams.set('action', action);
+  u.searchParams.set('token', TOKEN);
+  Object.keys(params||{}).forEach(k=>u.searchParams.set(k, params[k]));
+  const r = await fetch(u.toString(), { redirect:'follow' });
+  const j = await r.json();
+  if(j && j.error === 'unauthorised') throw new Error('unauthorised');
+  return j;
+}
+function apiFail(err){
+  const msg = String(err && err.message||err);
+  if(msg === 'unauthorised') return 'That token was rejected. Use the gear icon to re-enter it.';
+  if(msg === 'not configured') return 'Not connected yet. Use the gear icon to add your URL and token.';
+  return 'Could not reach Apps Script. Check the deployment is set to Anyone.';
+}
 
 const STAGES = [
   {key:'sourced',      label:'SOURCED',      color:'#5b6b8c', r:0.20},
@@ -635,10 +683,10 @@ function draftRule(spoken){
     document.getElementById('rvWrite').disabled=false;
     setState('thinking','confirm to write');
   };
-  if(LIVE && window.google && google.script){
-    google.script.run.withSuccessHandler(show)
-      .withFailureHandler(()=>{ document.getElementById('stText').textContent='Could not draft. Try again.'; })
-      .draftRuleFromSpeech(CURRENT.id, spoken, CURDOC);
+  if(LIVE && API && TOKEN){
+    api('draft',{gap:CURRENT.id, spoken:spoken, doc:CURDOC})
+      .then(r=>show((r&&r.text)||''))
+      .catch(e=>{ document.getElementById('stText').textContent=apiFail(e); });
   } else {
     setTimeout(()=> show('RULE: ' + spoken.trim().replace(/\.$/,'') + '.'), 800);
   }
@@ -654,10 +702,10 @@ function rvWrite(){
     DATA.bot.rules++; document.getElementById('mRules').textContent=DATA.bot.rules;
     renderGaps(); rvClose(); showTab('gap');
   };
-  if(LIVE && window.google && google.script){
-    google.script.run.withSuccessHandler(done)
-      .withFailureHandler(()=>{ document.getElementById('stText').textContent='Write failed.'; })
-      .commitRule(CURRENT.id, CURDRAFT, CURDOC);
+  if(LIVE && API && TOKEN){
+    api('commit',{gap:CURRENT.id, rule:CURDRAFT, doc:CURDOC})
+      .then(done)
+      .catch(e=>{ document.getElementById('stText').textContent=apiFail(e); });
   } else setTimeout(done,700);
 }
 
@@ -1087,10 +1135,10 @@ function send(){
   ansTxt.textContent='Checking the rulebook and Master Hub…';
   setState('thinking','working');
   chatter(/rule|policy|allowed|should/i.test(q) ? 'rule' : 'data');
-  if(LIVE && window.google && google.script){
-    google.script.run.withSuccessHandler(r=>{ansTxt.textContent=r;speak(r);})
-      .withFailureHandler(()=>{ansTxt.textContent='Could not reach the brain. Check the deployment version.';})
-      .askFromHud(q);
+  if(LIVE && API && TOKEN){
+    api('ask',{q:q})
+      .then(r=>{ const txt=(r&&r.text)||'No response.'; ansTxt.textContent=txt; speak(txt); })
+      .catch(e=>{ ansTxt.textContent=apiFail(e); setState('dormant'); });
   } else {
     setTimeout(()=>{
       const r='Batch 14 has '+(DATA.counts.training+DATA.counts.interviewing)+
@@ -1121,19 +1169,33 @@ document.getElementById('dock').addEventListener('click',()=>{
 });
 
 /* ═══ LIVE REFRESH ═══ */
-if(LIVE && window.google && google.script){
-  const refresh=()=>{
-    google.script.run.withSuccessHandler(m=>{
-      DATA.metrics=Object.assign(DATA.metrics,m); countUp(); }).getMetrics();
-    google.script.run.withSuccessHandler(p=>{
-      if(!p) return; DATA.counts=p.counts; DATA.batch=p.batch; build(); }).getPipeline();
-    google.script.run.withSuccessHandler(b=>{
-      if(!b) return; DATA.bot=Object.assign(DATA.bot,b); countUp(); }).getBotStats();
-    google.script.run.withSuccessHandler(g=>{
-      if(!g) return; GAPS=g; renderGaps(); }).getGaps();
-  };
-  refresh(); setInterval(refresh,60000);
+async function refresh(){
+  if(!API || !TOKEN) return;
+  try{
+    const m = await api('metrics');
+    if(m && !m.error){ DATA.metrics = Object.assign(DATA.metrics, m); countUp(); }
+
+    const p = await api('pipeline');
+    if(p && p.counts){ DATA.counts = p.counts; DATA.batch = p.batch; build(); }
+
+    const b = await api('stats');
+    if(b && !b.error){ DATA.bot = Object.assign(DATA.bot, b); countUp(); }
+
+    const g = await api('gaps');
+    if(Array.isArray(g)){ GAPS = g; renderGaps(); }
+  }catch(err){
+    push('risk','<b>Connection</b> — ' + apiFail(err));
+  }
 }
+
+// ask for the URL and token on first open, then start
+if(!API || !TOKEN){
+  document.getElementById('wake').textContent = 'TAP TO CONNECT';
+}
+document.getElementById('wake').addEventListener('click', ()=>{
+  if(!API || !TOKEN){ if(!askForSettings()) return; }
+  refresh(); setInterval(refresh, 60000);
+}, { once:true });
 </script>
 </body>
 </html>
