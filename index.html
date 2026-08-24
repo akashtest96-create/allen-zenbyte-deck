@@ -1303,7 +1303,12 @@ function send(){
     api('ask',{q:q}).then(r=>{
       const txt=(r&&r.text)||'No response.';
       $('answerText').textContent=txt; say(txt,false);
-    }).catch(e=>{ $('answerText').textContent=apiFail(e); setState('dormant'); });
+    }).catch(e=>{ 
+      const errTxt = apiFail(e);
+      $('answerText').textContent = errTxt; 
+      say(errTxt, false); // <-- Trisha will now speak the error out loud
+      setState('dormant'); 
+    });
   } else {
     setTimeout(()=>{
       const t='Batch has '+(DATA.counts.training+DATA.counts.interviewing)+
