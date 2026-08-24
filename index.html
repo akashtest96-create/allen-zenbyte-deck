@@ -1753,6 +1753,24 @@ async function refresh(){
   }
 }
 
+/* ═══ WAKE — the one gesture that starts everything ═══ */
+let STARTED = false;
+document.getElementById('wake').addEventListener('click', async ()=>{
+  if(!isConfigured()){ gate(); return; }
+  if(STARTED) return;
+  STARTED = true;
+
+  document.getElementById('boot').classList.add('gone');
+  document.getElementById('deck').classList.add('up');
+
+  countUp(); seedLog(); renderGaps(); renderChanges();
+  refresh(); setInterval(refresh, 60000);
+
+  // audio and microphone both need this same user gesture
+  unlockAudio();
+  setTimeout(async ()=>{ greet(); await startMic(); }, 500);
+});
+
 // ask for the URL and token on first open, then start
 
 </script>
