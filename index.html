@@ -38,9 +38,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:3;
     repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px)}
 
 /* BOOT */
-#boot{position:fixed;inset:0;z-index:50;background:var(--void);display:flex;
-  flex-direction:column;align-items:center;justify-content:center;gap:24px;
-  transition:opacity .5s ease}
+#boot{position:fixed;inset:0;z-index:50;background:#020610;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .5s ease;overflow-y:auto;padding:28px 20px}
+#boot.form{justify-content:flex-start;gap:16px;padding-top:38px}
+#boot.form .boot-logo{width:46px;height:46px}
+#boot.form .boot-mark{font-size:clamp(15px,3.4vw,22px);letter-spacing:.3em}
+#boot.form .boot-bar,#boot.form .boot-line,#boot.form .boot-sub{display:none}
 #boot.gone{opacity:0;pointer-events:none}
 .boot-logo{width:78px;height:78px;object-fit:contain;
   filter:drop-shadow(0 0 22px rgba(41,171,226,.4));
@@ -54,6 +58,35 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:3;
   animation:fill 2.1s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes fill{to{transform:translateX(0)}}
 .boot-line{font-family:var(--mono);font-size:11px;color:var(--ink-dim);min-height:16px}
+
+/* SETUP + LOCK */
+.gate{width:min(430px,88vw);display:flex;flex-direction:column;gap:12px;
+  animation:slide .35s ease}
+.gate.hide{display:none}
+.gate h3{font-family:var(--mono);font-size:9.5px;letter-spacing:.26em;
+  color:var(--ink-faint);font-weight:400;text-transform:uppercase;margin-bottom:2px}
+.gate label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  color:var(--ink-dim);text-transform:uppercase;display:block;margin-bottom:5px}
+.gate input{width:100%;background:rgba(4,14,30,.85);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--mono);font-size:13px;padding:11px 13px;
+  border-radius:2px;outline:none}
+.gate input:focus{border-color:var(--training)}
+.gate .row{margin-bottom:4px}
+.gate .hint{font-size:11.5px;line-height:1.5;color:var(--ink-faint)}
+.gate .err{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  color:var(--dropout);min-height:14px}
+.gate .btns{display:flex;gap:9px;margin-top:6px;flex-wrap:wrap}
+.gbtn{flex:1;border:1px solid var(--line);background:transparent;color:var(--ink-dim);
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;padding:12px 16px;
+  cursor:pointer;border-radius:2px;transition:.16s}
+.gbtn:hover{border-color:var(--line-hot);color:var(--training)}
+.gbtn.pri{border-color:var(--gold);color:var(--gold)}
+.gbtn.pri:hover{background:rgba(245,180,51,.1)}
+.gbtn.mic{border-color:var(--training);color:var(--training)}
+.gbtn.mic.live{border-color:var(--dropout);color:var(--dropout);animation:beat 1.1s infinite}
+.gate .tiny{background:none;border:0;color:var(--ink-faint);font-family:var(--mono);
+  font-size:9px;letter-spacing:.16em;cursor:pointer;padding:6px 0;text-decoration:underline}
+.gate .tiny:hover{color:var(--ink-dim)}
 
 /* WAKE */
 .wake{margin-top:6px;border:1px solid var(--training);background:transparent;
@@ -226,6 +259,36 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:3;
   line-height:1.62;color:var(--ink);font-weight:300}
 .st-hint{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--ink-faint)}
 
+/* SETUP + LOCK */
+.pane{width:min(430px,88vw);display:none;flex-direction:column;gap:13px;
+  animation:slide .35s ease}
+.pane.on{display:flex}
+.pane h3{font-family:var(--mono);font-size:10px;letter-spacing:.26em;
+  color:var(--training);font-weight:400;text-transform:uppercase}
+.pane p{font-size:12.5px;line-height:1.6;color:var(--ink-dim)}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--ink-faint)}
+.fld input{background:rgba(3,10,24,.85);border:1px solid var(--line);color:var(--ink);
+  padding:11px 12px;border-radius:2px;font-family:var(--mono);font-size:12px;outline:none}
+.fld input:focus{border-color:var(--training)}
+.fld .hint{font-size:11px;color:var(--ink-faint);line-height:1.5}
+.pane .row2{display:flex;gap:9px}
+.pane button{flex:1;border:1px solid var(--line);background:transparent;color:var(--ink-dim);
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;padding:12px;
+  cursor:pointer;border-radius:2px;transition:.16s}
+.pane button:hover:not(:disabled){border-color:var(--line-hot);color:var(--training)}
+.pane button.pri{border-color:var(--training);color:var(--training);
+  background:rgba(41,171,226,.08)}
+.pane button:disabled{opacity:.35;cursor:default}
+.stat{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;min-height:15px;
+  color:var(--ink-faint);line-height:1.5}
+.stat.ok{color:var(--placed)}
+.stat.bad{color:var(--dropout)}
+#pinDots{display:flex;gap:9px;justify-content:center;margin:4px 0 2px}
+#pinDots i{width:9px;height:9px;border-radius:50%;border:1px solid var(--line)}
+#pinDots i.f{background:var(--training);border-color:var(--training);
+  box-shadow:0 0 9px var(--training)}
+
 /* SPEAKING PILL */
 #sayPill{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);
   z-index:6;display:none;align-items:center;gap:9px;cursor:pointer;
@@ -327,7 +390,47 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:3;
   <div class="boot-sub">EXECUTIVE COMMAND DECK</div>
   <div class="boot-bar"><i></i></div>
   <div class="boot-line" id="bootLine">reading rulebook…</div>
+
+
   <button id="wake" class="wake">TAP TO WAKE</button>
+
+  <div class="pane" id="setup">
+    <h3>Connect to Apps Script</h3>
+    <p>Entered once per device, then remembered. Nothing is stored in the page itself.</p>
+    <div class="fld">
+      <label>APPS SCRIPT WEB APP URL</label>
+      <input id="fApi" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+      <div class="hint">Apps Script → Deploy → Manage deployments → copy the /exec URL.</div>
+    </div>
+    <div class="fld">
+      <label>API TOKEN</label>
+      <input id="fTok" placeholder="paste your API_TOKEN" autocomplete="off">
+      <div class="hint">The value you saved as <b>API_TOKEN</b> in Apps Script → Project Settings → Script Properties. Run <b>makeToken()</b> there if you have not created one yet.</div>
+    </div>
+    <div class="fld">
+      <label>DEVICE PIN — OPTIONAL</label>
+      <input id="fPin" placeholder="4 to 8 digits, or leave blank" inputmode="numeric" autocomplete="off">
+      <div class="hint">Locks this deck on this device. Leave blank for no lock.</div>
+    </div>
+    <div class="stat" id="setupStat"></div>
+    <div class="row2">
+      <button class="pri" id="btnSave" onclick="saveSetup()">TEST &amp; SAVE</button>
+    </div>
+  </div>
+
+  <div class="pane" id="lock">
+    <h3>Locked</h3>
+    <div id="pinDots"></div>
+    <div class="fld">
+      <input id="fUnlock" placeholder="enter PIN" inputmode="numeric" type="password"
+             autocomplete="off" oninput="pinDots()" onkeydown="if(event.key==='Enter')tryUnlock()">
+    </div>
+    <div class="stat" id="lockStat"></div>
+    <div class="row2">
+      <button class="pri" onclick="tryUnlock()">UNLOCK</button>
+      <button onclick="forgetDevice()">RESET DEVICE</button>
+    </div>
+  </div>
 </div>
 
 <div id="stage">
@@ -486,22 +589,133 @@ const LIVE = true;
 let API   = localStorage.getItem('az_api')   || '';
 let TOKEN = localStorage.getItem('az_token') || '';
 
-function askForSettings(force){
-  if(API && TOKEN && !force) return true;
-  const a = prompt('Apps Script web app URL (ends in /exec)', API || '');
-  if(!a) return false;
-  const t = prompt('API token', TOKEN || '');
-  if(!t) return false;
-  API = a.trim().replace(/\?.*$/,''); TOKEN = t.trim();
-  localStorage.setItem('az_api', API);
-  localStorage.setItem('az_token', TOKEN);
-  return true;
+/* ── SHA-256 helper for the PIN (never stored in plain text) ── */
+async function sha(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function show(id, on){ document.getElementById(id).classList.toggle('on', !!on); }
+function isConfigured(){ return !!(API && TOKEN); }
+function pinHash(){ return localStorage.getItem('az_pin') || ''; }
+function unlocked(){
+  const t = Number(localStorage.getItem('az_unlock')||0);
+  return Date.now() - t < 12*3600*1000;       // 12 hours per unlock
+}
+
+/* ── decide which screen to show on load ── */
+function gate(){
+  const wake = document.getElementById('wake');
+  const boot = document.getElementById('boot');
+  if(!isConfigured()){
+    show('setup', true); show('lock', false);
+    boot.classList.add('form');
+    wake.style.display='none';
+    return 'setup';
+  }
+  if(pinHash() && !unlocked()){
+    show('setup', false); show('lock', true);
+    boot.classList.add('form');
+    wake.style.display='none';
+    setTimeout(()=>document.getElementById('fUnlock').focus(), 200);
+    return 'lock';
+  }
+  show('setup', false); show('lock', false);
+  boot.classList.remove('form');
+  wake.style.display='';
+  wake.textContent='TAP TO WAKE';
+  return 'ready';
+}
+
+/* ── save: test the connection before storing anything ── */
+async function saveSetup(){
+  const st  = document.getElementById('setupStat');
+  const btn = document.getElementById('btnSave');
+  const url = document.getElementById('fApi').value.trim().replace(/\?.*$/,'');
+  const tok = document.getElementById('fTok').value.trim();
+  const pin = document.getElementById('fPin').value.trim();
+
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){
+    st.className='stat bad'; st.textContent='That does not look like an /exec URL.'; return;
+  }
+  if(!tok){ st.className='stat bad'; st.textContent='Paste your API token.'; return; }
+  if(pin && !/^\d{4,8}$/.test(pin)){
+    st.className='stat bad'; st.textContent='PIN must be 4 to 8 digits, or blank.'; return;
+  }
+
+  btn.disabled=true;
+  st.className='stat'; st.textContent='Testing connection…';
+  try{
+    const u=new URL(url);
+    u.searchParams.set('action','metrics');
+    u.searchParams.set('token',tok);
+    const r=await fetch(u.toString(),{redirect:'follow'});
+    const j=await r.json();
+    if(j && j.error==='unauthorised'){
+      st.className='stat bad';
+      st.textContent='Connected, but the token was rejected. Check API_TOKEN in Script Properties.';
+      btn.disabled=false; return;
+    }
+    if(!j || j.placed===undefined){
+      st.className='stat bad';
+      st.textContent='Reached the URL but got no data. Is the deployment set to Anyone?';
+      btn.disabled=false; return;
+    }
+
+    API=url; TOKEN=tok;
+    localStorage.setItem('az_api',API);
+    localStorage.setItem('az_token',TOKEN);
+    if(pin){
+      localStorage.setItem('az_pin', await sha(pin + '|' + url));
+      localStorage.setItem('az_unlock', String(Date.now()));
+    } else {
+      localStorage.removeItem('az_pin');
+    }
+    st.className='stat ok'; st.textContent='Connected. Saved on this device.';
+    setTimeout(()=>{ gate(); document.getElementById('wake').click(); }, 700);
+  }catch(e){
+    st.className='stat bad';
+    st.textContent='Could not reach Apps Script. Check the URL and that access is set to Anyone.';
+    btn.disabled=false;
+  }
+}
+
+/* ── PIN lock ── */
+function pinDots(){
+  const n=document.getElementById('fUnlock').value.length;
+  const box=document.getElementById('pinDots');
+  box.innerHTML='';
+  for(let i=0;i<Math.max(4,n);i++){
+    const d=document.createElement('i'); if(i<n) d.className='f'; box.appendChild(d);
+  }
+}
+async function tryUnlock(){
+  const st=document.getElementById('lockStat');
+  const v=document.getElementById('fUnlock').value.trim();
+  if(!v){ return; }
+  if(await sha(v + '|' + API) === pinHash()){
+    localStorage.setItem('az_unlock', String(Date.now()));
+    st.className='stat ok'; st.textContent='Unlocked.';
+    setTimeout(()=>{ gate(); document.getElementById('wake').click(); }, 400);
+  } else {
+    st.className='stat bad'; st.textContent='Wrong PIN.';
+    document.getElementById('fUnlock').value=''; pinDots();
+  }
+}
+function forgetDevice(){
+  ['az_api','az_token','az_pin','az_unlock'].forEach(k=>localStorage.removeItem(k));
+  API=''; TOKEN=''; location.reload();
 }
 function resetSettings(){
-  localStorage.removeItem('az_api');
-  localStorage.removeItem('az_token');
-  API=''; TOKEN='';
-  if(askForSettings(true)) location.reload();
+  document.getElementById('fApi').value = API;
+  document.getElementById('fTok').value = TOKEN;
+  document.getElementById('fPin').value = '';
+  document.getElementById('btnSave').disabled=false;
+  document.getElementById('setupStat').textContent='';
+  document.getElementById('boot').classList.remove('gone');
+  document.getElementById('deck').classList.remove('up');
+  document.getElementById('wake').style.display='none';
+  show('lock', false); show('setup', true);
 }
 
 async function api(action, params){
@@ -561,18 +775,17 @@ setTimeout(()=>{
     envState === 'insecure'    ? 'opened as a local file — voice disabled' :
     envState === 'framed'      ? 'running in the apps script frame — voice disabled' :
     envState === 'unsupported' ? 'voice needs chrome — typing still works' :
-                                 'ready · tap to enable voice';
+                                 'ready';
+
   document.getElementById('wake').classList.add('ready');
+  gate();
 }, 2400);
 
-// One tap unlocks audio and the microphone for the whole session.
-// Browsers require a gesture before either can start; this is that gesture.
-document.getElementById('wake').addEventListener('click', ()=>{
-  document.getElementById('boot').classList.add('gone');
-  document.getElementById('deck').classList.add('up');
-  countUp(); seedLog(); renderGaps(); renderChanges();
-  unlockAudio();
-  setTimeout(async ()=>{ greet(); await startMic(); }, 500);
+// Enter submits on whichever screen is showing
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter') return;
+  if(document.getElementById('setup').classList.contains('on')) saveSetup();
+  else if(document.getElementById('lock').classList.contains('on')) tryUnlock();
 });
 
 /* ═══ CLOCK ═══ */
@@ -1541,13 +1754,7 @@ async function refresh(){
 }
 
 // ask for the URL and token on first open, then start
-if(!API || !TOKEN){
-  document.getElementById('wake').textContent = 'TAP TO CONNECT';
-}
-document.getElementById('wake').addEventListener('click', ()=>{
-  if(!API || !TOKEN){ if(!askForSettings()) return; }
-  refresh(); setInterval(refresh, 60000);
-}, { once:true });
+
 </script>
 </body>
 </html>
